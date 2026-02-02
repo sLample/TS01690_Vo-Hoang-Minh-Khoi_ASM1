@@ -1,16 +1,28 @@
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { auth } from '../stores/auth'
+
+const email = ref('')
+const password = ref('')
+const error = ref('')
+const router = useRouter()
+
+const login = () => {
+  if (!auth.login(email.value, password.value)) {
+    error.value = 'Sai thông tin đăng nhập'
+    return
+  }
+  router.push('/')
+}
+</script>
+
 <template>
   <div class="col-md-6 mx-auto">
     <h2>Đăng nhập</h2>
-    <form>
-      <div class="mb-3">
-        <label>Email</label>
-        <input type="email" class="form-control">
-      </div>
-      <div class="mb-3">
-        <label>Mật khẩu</label>
-        <input type="password" class="form-control">
-      </div>
-      <button class="btn btn-primary">Đăng nhập</button>
-    </form>
+    <input v-model="email" class="form-control mb-2" placeholder="Email">
+    <input v-model="password" type="password" class="form-control mb-2" placeholder="Mật khẩu">
+    <p class="text-danger" v-if="error">{{ error }}</p>
+    <button class="btn btn-primary" @click="login">Đăng nhập</button>
   </div>
 </template>
