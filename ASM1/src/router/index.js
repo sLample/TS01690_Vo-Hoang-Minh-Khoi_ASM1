@@ -8,6 +8,8 @@ import Register from '../views/Register.vue'
 import CreatePost from '../views/Createpost.vue'
 import Profile from '../views/Profile.vue'
 import PostDetail from '../views/Postdetail.vue'
+import AdminDashboard from '../views/AdminDashboard.vue'
+import AdminCommentManager from '../views/AdminCommentManager.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -15,15 +17,29 @@ const routes = [
   { path: '/post/:id', component: PostDetail },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+
   {
     path: '/create',
     component: CreatePost,
     meta: { requiresAuth: true }
   },
+
   {
     path: '/profile',
     component: Profile,
     meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/admin',
+    component: AdminDashboard,
+    meta: { requiresAdmin: true }
+  },
+
+  {
+    path: '/admin/comments',
+    component: AdminCommentManager,
+    meta: { requiresAdmin: true }
   }
 ]
 
@@ -36,7 +52,10 @@ router.beforeEach((to) => {
   if (to.meta.requiresAuth && !auth.user) {
     return '/login'
   }
+
+  if (to.meta.requiresAdmin && auth.user?.role !== 'admin') {
+    return '/'
+  }
 })
 
 export default router
-

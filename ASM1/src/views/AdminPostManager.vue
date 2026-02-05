@@ -6,14 +6,13 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 🔒 Bảo vệ admin
 if (auth.user?.role !== 'admin') {
   router.push('/')
 }
 
-// ========== EDIT ==========
 const editingPost = ref(null)
 
+// EDIT
 function editPost(post) {
   editingPost.value = { ...post }
 }
@@ -26,7 +25,7 @@ function savePost() {
   editingPost.value = null
 }
 
-// ========== DELETE ==========
+// DELETE
 function deletePost(id) {
   if (confirm('Xoá bài viết này?')) {
     const index = posts.findIndex(p => p.id === id)
@@ -34,7 +33,7 @@ function deletePost(id) {
   }
 }
 
-// ========== STATISTICS ==========
+// STATISTICS
 const categoryStats = computed(() => {
   const stats = {}
   posts.forEach(p => {
@@ -43,3 +42,74 @@ const categoryStats = computed(() => {
   return stats
 })
 </script>
+
+<template>
+  <div class="container mt-4">
+    <h2>🛠 Admin Dashboard</h2>
+
+    <hr />
+
+    <!-- STAT -->
+    <h4>📊 Thống kê bài viết</h4>
+    <ul>
+      <li v-for="(count, cat) in categoryStats" :key="cat">
+        {{ cat }}: {{ count }} bài
+      </li>
+    </ul>
+
+    <hr />
+
+    <!-- POST MANAGEMENT -->
+    <h4>📰 Quản lý bài viết</h4>
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Tiêu đề</th>
+          <th>Danh mục</th>
+          <th width="180">Hành động</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="p in posts" :key="p.id">
+          <td>{{ p.title }}</td>
+          <td>{{ p.category }}</td>
+          <td>
+            <button
+              class="btn btn-sm btn-warning me-2"
+              @click="editPost(p)"
+            >
+              Sửa
+            </button>
+            <button
+              class="btn btn-sm btn-danger"
+              @click="deletePost(p.id)"
+            >
+              Xoá
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- EDIT FORM -->
+    <div v-if="editingPost" class="card p-3 mt-4">
+      <h5>✏️ Sửa bài</h5>
+
+      <input
+        v-model="editingPost.title"
+        class="form-control mb-2"
+      />
+
+      <textarea
+        v-model="editingPost.content"
+        class="form-control mb-2"
+      ></textarea>
+
+      <button class="btn btn-success" @click="savePost">
+        Lưu
+      </button>
+    </div>
+  </div>
+</template>

@@ -1,4 +1,4 @@
-\<script setup>
+<script setup>
 import { computed } from 'vue'
 import { auth } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -30,7 +30,7 @@ function logout() {
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- Left menu -->
+      <!-- LEFT -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
           <router-link to="/" class="nav-link">
@@ -45,16 +45,15 @@ function logout() {
         </li>
       </ul>
 
-      <!-- Right menu -->
+      <!-- RIGHT -->
       <ul class="navbar-nav">
-        <!-- Chưa đăng nhập -->
+        <!-- CHƯA LOGIN -->
         <template v-if="!isLogin">
           <li class="nav-item">
             <router-link to="/login" class="nav-link">
               Đăng nhập
             </router-link>
           </li>
-
           <li class="nav-item">
             <router-link to="/register" class="nav-link">
               Đăng ký
@@ -62,7 +61,7 @@ function logout() {
           </li>
         </template>
 
-        <!-- Đã đăng nhập -->
+        <!-- ĐÃ LOGIN -->
         <template v-else>
           <li class="nav-item dropdown">
             <a
@@ -80,16 +79,42 @@ function logout() {
                   Hồ sơ cá nhân
                 </router-link>
               </li>
-              <li><hr class="dropdown-divider"></li>
+
+              <!-- 👑 ADMIN MENU -->
+              <template v-if="auth.user.role === 'admin'">
+                <li>
+                  <router-link
+                    to="/admin"
+                    class="dropdown-item text-primary fw-bold"
+                  >
+                    ⚙️ Quản lý bài viết
+                  </router-link>
+                </li>
+
+                <li>
+                  <router-link
+                    to="/admin/comments"
+                    class="dropdown-item text-primary fw-bold"
+                  >
+                    💬 Quản lý bình luận
+                  </router-link>
+                </li>
+              </template>
+
+              <li><hr class="dropdown-divider" /></li>
+
               <li>
-                <button class="dropdown-item text-danger" @click="logout">
-                  Đăng xuất
+                <button
+                  class="dropdown-item text-danger"
+                  @click="logout"
+                >
+                  🚪 Đăng xuất
                 </button>
               </li>
             </ul>
           </li>
         </template>
-      </ul>
+      </ul> 
     </div>
   </nav>
 </template>

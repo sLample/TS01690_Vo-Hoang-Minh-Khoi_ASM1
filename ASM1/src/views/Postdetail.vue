@@ -1,86 +1,155 @@
 <script setup>
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { posts } from '../data/post'
 import { auth } from '../stores/auth'
-import { ref } from 'vue'
+import { comments } from '../data/comments'
+import { posts } from '../data/post'
 
 const route = useRoute()
-const post = posts.find(p => p.id === Number(route.params.id))
+const postId = Number(route.params.id)
 
-if (post && !post.comments) {
-  post.comments = []
+/* ===== BÀI VIẾT ===== */
+const post = computed(() =>
+  posts.find(p => p.id === postId)
+)
+
+/* ===== COMMENT ===== */
+const content = ref('')
+
+const postComments = computed(() =>
+  comments.filter(
+    c =>
+      c.postId === postId &&
+      (c.status === 'active' || auth.user?.role === 'admin')
+  )
+)
+
+function saveComments() {
+  localStorage.setItem('comments', JSON.stringify(comments))
 }
 
-const comment = ref('')
-
 function addComment() {
-  if (!comment.value || !auth.user) return
+  if (!auth.user || !content.value.trim()) return
 
-  post.comments.push({
-    user: auth.user.name,
-    text: comment.value,
-    time: new Date().toLocaleString()
+  comments.push({
+    id: Date.now(),
+    postId,
+    author: auth.user.name,
+    content: content.value,
+    createdAt: new Date().toLocaleString(),
+    status: 'active'
   })
 
-  comment.value = ''
+  saveComments()
+  content.value = ''
+}
+
+function deleteMyComment(id) {
+  const index = comments.findIndex(c => c.id === id)
+  if (index !== -1) {
+    comments.splice(index, 1)
+    saveComments()
+  }
+}
+
+function adminDelete(id) {
+  if (!confirm('Admin muốn xoá bình luận này?')) return
+  const index = comments.findIndex(c => c.id === id)
+  if (index !== -1) {
+    comments.splice(index, 1)
+    saveComments()
+  }
+}
+
+function toggleStatus(comment) {
+  comment.status =
+    comment.status === 'active' ? 'hidden' : 'active'
+  saveComments()
 }
 </script>
 
 <template>
-  <div v-if="post" class="container py-4">
+  <div class="container mt-4" v-if="post">
+    <!-- ===== BÀI VIẾT ===== -->
+    <h2 class="mb-3">{{ post.title }}</h2>
 
-    <h2 class="fw-bold">{{ post.title }}</h2>
-    <p class="text-muted">{{ post.author }} • {{ post.publishedAt }}</p>
+    <p class="text-muted">
+      {{ post.source }} • {{ post.publishedAt }}
+    </p>
 
     <img
       v-if="post.image"
       :src="post.image"
-      class="img-fluid rounded mb-4"
+      class="img-fluid rounded mb-3"
     />
 
-    <p style="white-space: pre-line">{{ post.content }}</p>
+    <p class="fs-5">{{ post.content }}</p>
 
-    <!-- VIDEO LINK -->
-    <div
-      v-if="post.video && post.video.type === 'link'"
-      class="ratio ratio-16x9 my-4"
-    >
-      <iframe
-        :src="post.video.src"
-        frameborder="0"
-        allowfullscreen
-      ></iframe>
-    </div>
+    <iframe
+      v-if="post.video"
+      :src="post.video"
+      class="w-100 mb-4"
+      height="400"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
 
-    <!-- VIDEO FILE -->
-    <video
-      v-if="post.video && post.video.type === 'file'"
-      :src="post.video.src"
-      controls
-      class="w-100 rounded my-4"
-    ></video>
+    <hr />
 
-    <hr>
-
-    <h5>💬 Bình luận</h5>
+    <!-- ===== COMMENT ===== -->
+    <h4>💬 Bình luận</h4>
 
     <div v-if="auth.user" class="mb-3">
-      <textarea v-model="comment" class="form-control mb-2"></textarea>
-      <button class="btn btn-secondary" @click="addComment">Gửi</button>
+      <textarea
+        v-model="content"
+        class="form-control mb-2"
+        placeholder="Nhập bình luận..."
+      ></textarea>
+
+      <button class="btn btn-primary" @click="addComment">
+        Gửi
+      </button>
     </div>
 
-    <div v-else class="text-muted">Đăng nhập để bình luận</div>
+    <p v-else class="text-muted">🔒 Đăng nhập để bình luận</p>
 
-    <ul class="list-group mt-3">
-      <li
-        v-for="c in post.comments"
-        :key="c.time"
-        class="list-group-item"
+    <div
+      v-for="c in postComments"
+      :key="c.id"
+      class="border p-2 mb-2"
+    >
+      <b>{{ c.author }}</b>
+      <small class="text-muted">({{ c.createdAt }})</small>
+
+      <p>{{ c.content }}</p>
+
+      <button
+        v-if="auth.user?.name === c.author"
+        class="btn btn-sm btn-danger me-2"
+        @click="deleteMyComment(c.id)"
       >
-        <strong>{{ c.user }}</strong>
-        <div>{{ c.text }}</div>
-        <div class="text-muted small">{{ c.time }}</div>
-      </li>
-    </ul>
+        🗑 Xóa
+      </button>
+
+      <template v-if="auth.user?.role === 'admin'">
+        <button
+          class="btn btn-sm btn-warning me-2"
+          @click="toggleStatus(c)"
+        >
+          {{ c.status === 'active' ? 'Ẩn' : 'Hiện' }}
+        </button>
+
+        <button
+          class="btn btn-sm btn-danger"
+          @click="adminDelete(c.id)"
+        >
+          ❌ Xóa (Admin)
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <div v-else class="container mt-4 text-center text-danger">
+    ❌ Không tìm thấy bài viết
   </div>
 </template>
