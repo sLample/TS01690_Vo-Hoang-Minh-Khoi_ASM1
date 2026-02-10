@@ -10,3 +10,4 @@ watch(
   v => localStorage.setItem('comments', JSON.stringify(v)),
   { deep: true }
 )
+  

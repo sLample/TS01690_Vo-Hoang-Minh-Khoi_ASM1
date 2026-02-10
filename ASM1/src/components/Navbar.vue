@@ -1,35 +1,37 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { auth } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
 const isLogin = computed(() => auth.user)
+const message = ref('')
 
 function logout() {
   auth.logout()
-  router.push('/login')
+  message.value = '👋 Bạn đã đăng xuất'
+  setTimeout(() => {
+    router.push('/login')
+    message.value = ''
+  }, 800)
 }
 </script>
 
 <template>
+  <!-- THÔNG BÁO -->
+  <div
+    v-if="message"
+    class="alert alert-info text-center rounded-0 m-0"
+  >
+    {{ message }}
+  </div>
+
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-    <!-- Logo -->
     <router-link to="/" class="navbar-brand fw-bold">
       📰 ASM NEWS
     </router-link>
 
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarNav"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="collapse navbar-collapse">
       <!-- LEFT -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
@@ -47,7 +49,6 @@ function logout() {
 
       <!-- RIGHT -->
       <ul class="navbar-nav">
-        <!-- CHƯA LOGIN -->
         <template v-if="!isLogin">
           <li class="nav-item">
             <router-link to="/login" class="nav-link">
@@ -61,7 +62,6 @@ function logout() {
           </li>
         </template>
 
-        <!-- ĐÃ LOGIN -->
         <template v-else>
           <li class="nav-item dropdown">
             <a
@@ -80,12 +80,11 @@ function logout() {
                 </router-link>
               </li>
 
-              <!-- 👑 ADMIN MENU -->
               <template v-if="auth.user.role === 'admin'">
                 <li>
                   <router-link
                     to="/admin"
-                    class="dropdown-item text-primary fw-bold"
+                    class="dropdown-item fw-bold text-primary"
                   >
                     ⚙️ Quản lý bài viết
                   </router-link>
@@ -94,7 +93,7 @@ function logout() {
                 <li>
                   <router-link
                     to="/admin/comments"
-                    class="dropdown-item text-primary fw-bold"
+                    class="dropdown-item fw-bold text-primary"
                   >
                     💬 Quản lý bình luận
                   </router-link>
@@ -114,7 +113,8 @@ function logout() {
             </ul>
           </li>
         </template>
-      </ul> 
+      </ul>
     </div>
   </nav>
 </template>
+      
